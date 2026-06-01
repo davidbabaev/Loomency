@@ -18,5 +18,12 @@ export async function GET(request: Request){
 
 export async function POST(request: Request){
     const body = await request.json();
+
+    const result = MessageSchema.safeParse(body);
+
+    if(!result.success){
+        return Response.json({error: 'Invalid message'}, {status: 400})
+    }
+
     return Response.json({youSent: body});
 }
