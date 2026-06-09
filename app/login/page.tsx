@@ -32,10 +32,11 @@ export default function LoginPage() {
         <input 
             type="password" 
             placeholder='Password' 
-            onChange={(e) => setEmail(e.target.value)}
+            onChange={(e) => setPassword(e.target.value)}
         />
         <button onClick={handleLogin}>Log in</button>
         {message && <p>{message}</p>}
+        <button onClick={() => authClient.signOut()}>Log out</button>
     </div>
   );
 }
