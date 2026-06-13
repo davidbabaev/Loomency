@@ -10,7 +10,9 @@ export default function LoginPage() {
     const[password, setPassword] = useState('');
     const[message, setMessage] = useState('');
 
-    async function handleLogin() {
+    async function handleLogin(e: React.SubmitEvent<HTMLFormElement>) {
+        e.preventDefault();
+
         const {error} = await authClient.signIn.email({email, password})
 
         if(error){
@@ -22,22 +24,6 @@ export default function LoginPage() {
 
 
   return (
-/*     <div>
-        <h1>Log in</h1>
-        <input 
-            type="email" 
-            placeholder='Email' 
-            onChange={(e) => setEmail(e.target.value)}
-        />
-        <input 
-            type="password" 
-            placeholder='Password' 
-            onChange={(e) => setPassword(e.target.value)}
-        />
-        <button onClick={handleLogin}>Log in</button>
-        {message && <p>{message}</p>}
-        <button onClick={() => authClient.signOut()}>Log out</button>
-    </div> */
     <>
       {/*
         This example requires updating your template:
@@ -58,7 +44,7 @@ export default function LoginPage() {
         </div>
 
         <div className="mt-10 sm:mx-auto sm:w-full sm:max-w-sm">
-          <form action="#" method="POST" className="space-y-6">
+          <form className="space-y-6" onSubmit={handleLogin}>
             <div>
               <label htmlFor="email" className="block text-sm/6 font-medium text-gray-100">
                 Email address
@@ -99,7 +85,6 @@ export default function LoginPage() {
               <button
                 type="submit"
                 className="flex w-full justify-center rounded-md bg-indigo-500 px-3 py-1.5 text-sm/6 font-semibold text-white hover:bg-indigo-400 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500"
-                onClick={handleLogin}
               >
                 Sign in
               </button>
