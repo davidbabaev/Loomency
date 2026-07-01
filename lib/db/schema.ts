@@ -26,7 +26,7 @@ export const employees = pgTable("employees", {
     role: text()
 },
     (table) => [
-        unique().on(table.user_id_betterauth, table.employee_id)
+        unique().on(table.user_id_betterauth, table.business_id)
     ]
 )
 
