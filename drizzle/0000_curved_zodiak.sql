@@ -7,6 +7,7 @@ CREATE TABLE "businesses" (
 	"phone_number" text,
 	"created_at" timestamp DEFAULT now()
 );
+
 --> statement-breakpoint
 CREATE TABLE "conversations" (
 	"customer_id" integer,
@@ -14,6 +15,7 @@ CREATE TABLE "conversations" (
 	"conversation_id" integer PRIMARY KEY GENERATED ALWAYS AS IDENTITY (sequence name "conversations_conversation_id_seq" INCREMENT BY 1 MINVALUE 1 MAXVALUE 2147483647 START WITH 1 CACHE 1),
 	"created_at" timestamp DEFAULT now()
 );
+
 --> statement-breakpoint
 CREATE TABLE "customers" (
 	"customer_id" integer PRIMARY KEY GENERATED ALWAYS AS IDENTITY (sequence name "customers_customer_id_seq" INCREMENT BY 1 MINVALUE 1 MAXVALUE 2147483647 START WITH 1 CACHE 1),
@@ -22,6 +24,7 @@ CREATE TABLE "customers" (
 	"phone_number" text,
 	"created_at" timestamp DEFAULT now()
 );
+
 --> statement-breakpoint
 CREATE TABLE "employees" (
 	"user_id_betterauth" text,
@@ -31,6 +34,7 @@ CREATE TABLE "employees" (
 	"role" text,
 	CONSTRAINT "employees_user_id_betterauth_business_id_unique" UNIQUE("user_id_betterauth","business_id")
 );
+
 --> statement-breakpoint
 CREATE TABLE "messages" (
 	"conversation_id" integer,
@@ -43,6 +47,7 @@ CREATE TABLE "messages" (
 	"message_media_type" text,
 	"created_at" timestamp DEFAULT now()
 );
+
 --> statement-breakpoint
 ALTER TABLE "conversations" ADD CONSTRAINT "conversations_customer_id_customers_customer_id_fk" FOREIGN KEY ("customer_id") REFERENCES "public"."customers"("customer_id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "conversations" ADD CONSTRAINT "conversations_business_id_businesses_business_id_fk" FOREIGN KEY ("business_id") REFERENCES "public"."businesses"("business_id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
