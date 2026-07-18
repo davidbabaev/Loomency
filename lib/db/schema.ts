@@ -21,7 +21,7 @@ export const customers = pgTable("customers", {
 export const employees = pgTable("employees", {
     user_id_betterauth: text(),
     employee_id: integer().primaryKey().generatedAlwaysAsIdentity(),
-    business_id: integer().references(() => businesses.business_id),
+    business_id: integer().references(() => businesses.business_id).notNull(),
     created_at: timestamp().defaultNow(),
     role: text()
 },
