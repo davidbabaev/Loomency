@@ -3,6 +3,7 @@
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { NextResponse } from "next/server";
+import { getConversations } from "@/lib/services/conversations.service";
 
 export async function GET() {
     const session = await auth.api.getSession({
@@ -14,6 +15,7 @@ export async function GET() {
     }
 
     const userId: string = session.user.id;
+    const conversations = await getConversations(userId);
     
-    return NextResponse.json(userId);
+    return NextResponse.json(conversations);
 }
