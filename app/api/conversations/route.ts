@@ -26,6 +26,22 @@ const CreateConversationSchema = z.object({
 })
 
 export async function POST(request: Request) {
+    const session = await auth.api.getSession({
+        headers: await headers(), 
+    }); 
+
+    if(!session){
+        return NextResponse.json({error: 'Unauthorized'}, {status: 401})
+    }
+
+    const userId: string = session.user.id;
+
     const body = await request.json();
-    return NextResponse.json(body);
+    const result = CreateConversationSchema.safeParse(body);
+
+    if(!result.success){
+        return NextResponse.json({error: "Invalid request body"}, {status: 400});
+    }
+
+    const newConversation = await createConversation(userId, result.data)
 }
