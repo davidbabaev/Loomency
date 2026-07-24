@@ -3,8 +3,8 @@
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { NextResponse } from "next/server";
-import { getConversations } from "@/lib/services/conversations.service";
-import z from "zod";
+import { createConversation, getConversations } from "@/lib/services/conversations.service";
+import { CreateConversationSchema } from "@/lib/validations/conversations.schema";
 
 export async function GET() {
     const session = await auth.api.getSession({
@@ -17,13 +17,13 @@ export async function GET() {
 
     const userId: string = session.user.id;
     const conversations = await getConversations(userId);
+
+    if(!conversations) {
+        return NextResponse.json({error: 'Forbidden'}, {status: 403});
+    }
     
     return NextResponse.json(conversations);
 }
-
-const CreateConversationSchema = z.object({
-    customer_id: z.number(),
-})
 
 export async function POST(request: Request) {
     const session = await auth.api.getSession({
@@ -44,4 +44,10 @@ export async function POST(request: Request) {
     }
 
     const newConversation = await createConversation(userId, result.data)
+
+    if(!newConversation) {
+        return NextResponse.json({error:'Forbidden'}, {status: 403});
+    }
+
+    return NextResponse.json(newConversation, {status: 201});
 }
