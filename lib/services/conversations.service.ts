@@ -1,6 +1,7 @@
 // the Service - chef (logic)
 
 import { getAllConversations, insertConversation } from "../repositories/conversations.repository";
+import { getCustomerById } from "../repositories/customers.repository";
 import { getEmployeeByUserId } from "../repositories/employees.repository";
 import { CreateConversationInput } from "../validations/conversations.schema";
 
@@ -8,7 +9,7 @@ import { CreateConversationInput } from "../validations/conversations.schema";
 export async function getConversations(userId: string) {
     const employee = await getEmployeeByUserId(userId)
     if(!employee){
-        throw new Error('No employee found for this user')
+        return null;
     }
     const business_id = employee.business_id
 
@@ -25,6 +26,13 @@ export async function createConversation(
         return null;
     }
 
+    // ↓↓↓ NEW ↓↓↓
+    const customer = await getCustomerById(data.customer_id);
+    if(!customer || customer.business_id !== employee.business_id ){
+        return null;
+    }
+
+    // ___________
     const newConversation = await insertConversation({
         ...data,
         business_id: employee.business_id

@@ -37,8 +37,8 @@ export async function POST(request: Request) {
     const userId: string = session.user.id;
 
     const body = await request.json();
+    
     const result = CreateConversationSchema.safeParse(body);
-
     if(!result.success){
         return NextResponse.json({error: "Invalid request body"}, {status: 400});
     }

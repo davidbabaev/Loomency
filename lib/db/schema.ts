@@ -12,6 +12,7 @@ export const businesses = pgTable("businesses", {
 
 export const customers = pgTable("customers", {
     customer_id: integer().primaryKey().generatedAlwaysAsIdentity(),
+    business_id: integer().references(() => businesses.business_id).notNull(),
     customer_name: text(),
     customer_lastname: text(),
     phone_number: text(),
