@@ -2,13 +2,28 @@
 
 import {db} from "@/lib/db"
 import {conversations} from "@/lib/db/schema"
-import { eq } from "drizzle-orm"
+import { eq, and } from "drizzle-orm"
 
 export async function getAllConversations(business_id: number) {
     return await db
         .select()
         .from(conversations)
         .where(eq(conversations.business_id, business_id))
+}
+
+export async function getConversationsByIdRepo(
+    conversationId: number,
+    business_id: number
+){
+    const result = await db
+        .select()
+        .from(conversations)
+        .where(and(
+            eq(conversations.business_id, business_id),
+            eq(conversations.conversation_id, conversationId)
+        ))
+        .limit(1)
+    return result[0];
 }
 
 export async function insertConversation(

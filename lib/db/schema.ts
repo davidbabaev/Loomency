@@ -33,14 +33,14 @@ export const employees = pgTable("employees", {
 
 export const conversations = pgTable("conversations", {
     customer_id: integer().references(() => customers.customer_id),
-    business_id: integer().references(() => businesses.business_id),
+    business_id: integer().references(() => businesses.business_id).notNull(),
     conversation_id: integer().primaryKey().generatedAlwaysAsIdentity(),
     created_at: timestamp().defaultNow(),
 })
 
 export const messages = pgTable("messages", {
     conversation_id: integer().references(() => conversations.conversation_id),
-    business_id: integer().references(() => businesses.business_id),
+    business_id: integer().references(() => businesses.business_id).notNull(),
     message_text: text(),
     message_id: integer().primaryKey().generatedAlwaysAsIdentity(),
     sender_user_id: integer().references(() => customers.customer_id),
