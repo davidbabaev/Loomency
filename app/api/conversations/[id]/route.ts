@@ -23,5 +23,11 @@ export async function GET(
     }
 
     const userId: string = session.user.id;
-    const conversation = await getConversationById(userId, conversationId)
+    const conversation = await getConversationById(userId, conversationId);
+
+    if(!conversation) {
+        return NextResponse.json({error: 'Not found'}, {status: 404});
+    }
+
+    return NextResponse.json(conversation);
 }
