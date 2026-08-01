@@ -1,6 +1,5 @@
 import { sql } from "drizzle-orm";
-import { check } from "drizzle-orm/gel-core";
-import { integer, text, pgTable, timestamp, unique, pgEnum } from "drizzle-orm/pg-core";
+import { integer, text, pgTable, timestamp, unique, pgEnum, check } from "drizzle-orm/pg-core";
 
 export const senderTypeEnum = pgEnum('sender_type', ['customer', 'employee', 'agent']);
 
@@ -43,7 +42,7 @@ export const conversations = pgTable("conversations", {
 })
 
 export const messages = pgTable("messages", {
-    conversation_id: integer().references(() => conversations.conversation_id),
+    conversation_id: integer().references(() => conversations.conversation_id).notNull(),
     business_id: integer().references(() => businesses.business_id).notNull(),
     message_text: text(),
     message_id: integer().primaryKey().generatedAlwaysAsIdentity(),
@@ -59,7 +58,7 @@ export const messages = pgTable("messages", {
         sql`
             (${table.sender_type} = 'customer' AND ${table.sender_customer_id} IS NOT NULL AND ${table.sender_employee_id} IS NULL)
             OR (${table.sender_type} = 'employee' AND ${table.sender_employee_id} IS NOT NULL AND ${table.sender_customer_id} IS NULL)
-            OR (${table.sender_type} = 'agent' AND ${table.sender_customer_id} IS NOT NULL AND ${table.sender_employee_id} IS NULL)
+            OR (${table.sender_type} = 'agent' AND ${table.sender_customer_id} IS NULL AND ${table.sender_employee_id} IS NULL)
         `
     )
-]) ;
+]);
