@@ -1,6 +1,6 @@
 // the Service - chef (logic)
 
-import { getAllConversations, getConversationsByIdRepo, insertConversation } from "../repositories/conversations.repository";
+import { getAllConversations, getConversationByIdRepo, insertConversation } from "../repositories/conversations.repository";
 import { getCustomerById } from "../repositories/customers.repository";
 import { getEmployeeByUserId } from "../repositories/employees.repository";
 import { CreateConversationInput } from "../validations/conversations.schema";
@@ -22,7 +22,7 @@ export async function getConversationById(userId: string, conversationId: number
         return null
     }
 
-    return await getConversationsByIdRepo(conversationId, employee.business_id);
+    return await getConversationByIdRepo(conversationId, employee.business_id);
 }
 
 export async function createConversation(

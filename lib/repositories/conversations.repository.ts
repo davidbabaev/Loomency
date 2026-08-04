@@ -11,7 +11,7 @@ export async function getAllConversations(business_id: number) {
         .where(eq(conversations.business_id, business_id))
 }
 
-export async function getConversationsByIdRepo(
+export async function getConversationByIdRepo(
     conversationId: number,
     business_id: number
 ){
