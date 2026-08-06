@@ -1,4 +1,4 @@
-import { and, eq } from "drizzle-orm";
+import { and, asc, eq } from "drizzle-orm";
 import { db } from "../db";
 import { messages } from "../db/schema";
 
@@ -14,4 +14,5 @@ export async function getMessagesByConversationIdRepo(
             eq(messages.conversation_id, conversationId),
             eq(messages.business_id, business_id),
         ))
+        .orderBy(asc(messages.created_at))
 }

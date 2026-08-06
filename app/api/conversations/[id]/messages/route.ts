@@ -1,6 +1,7 @@
 // 3 imports
 
 import { auth } from "@/lib/auth";
+import { getMessagesByConversationId } from "@/lib/services/messages.service";
 import { headers } from "next/headers";
 import { NextResponse } from "next/server";
 
@@ -37,4 +38,12 @@ export async function GET(
 
     const userId: string = session.user.id;
     // reading a value out of nested object.
+
+    const messages = await getMessagesByConversationId(userId, conversationId);
+
+    if(!messages){
+        return NextResponse.json({error: 'Not found'}, {status: 404});
+    }
+
+    return NextResponse.json(messages);
 } 
