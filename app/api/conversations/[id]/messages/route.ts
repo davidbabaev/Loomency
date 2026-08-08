@@ -2,6 +2,7 @@
 
 import { auth } from "@/lib/auth";
 import { getMessagesByConversationId } from "@/lib/services/messages.service";
+import { error } from "console";
 import { headers } from "next/headers";
 import { NextResponse } from "next/server";
 
@@ -47,3 +48,20 @@ export async function GET(
 
     return NextResponse.json(messages);
 } 
+
+export async function POST(
+    request: Request,
+    context,
+){
+
+    const session = await auth.api.getSession({
+        headers: await headers(),
+    })
+
+    if(!session){
+        return NextResponse.json({error: 'Unauthorized'}, {status: 401})
+    }
+
+    const userId: string = session.user.id;
+    const body = await request.json();
+}
