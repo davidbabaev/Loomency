@@ -15,3 +15,18 @@ export async function getMessagesByConversationId(
 
     return await getMessagesByConversationIdRepo(conversationId, business_id);
 }
+
+export async function createMessage(
+    userId: string,
+    conversationId: number,
+    data: string,
+) {
+    const conversation = await getConversationById(userId, conversationId);
+    if(!conversation){
+        return null;
+    }
+
+    const business_id = conversation.business_id;
+
+    // <- write-specific part goes here
+}

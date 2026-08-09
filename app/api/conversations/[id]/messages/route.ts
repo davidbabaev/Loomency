@@ -1,7 +1,8 @@
 // 3 imports
 
 import { auth } from "@/lib/auth";
-import { getMessagesByConversationId } from "@/lib/services/messages.service";
+import { getMessagesByConversationId, createMessage } from "@/lib/services/messages.service";
+import { CreateMessageSchema } from "@/lib/validations/messages.schema";
 import { error } from "console";
 import { headers } from "next/headers";
 import { NextResponse } from "next/server";
@@ -51,8 +52,15 @@ export async function GET(
 
 export async function POST(
     request: Request,
-    context,
+    context: {params: Promise<{id: string}>},
 ){
+
+    const {id} = await context.params;
+    const conversationId = Number(id);
+
+    if(Number.isNaN(conversationId)){
+        return NextResponse.json({error: 'Invalid conversation ID'}, {status: 400})
+    }
 
     const session = await auth.api.getSession({
         headers: await headers(),
@@ -64,4 +72,17 @@ export async function POST(
 
     const userId: string = session.user.id;
     const body = await request.json();
+
+    const result = CreateMessageSchema.safeParse(body);
+    if(!result.success){
+        return NextResponse.json({error:'Invalid request body'}, {status: 400})
+    }
+
+    const newMessage = await createMessage(userId, conversationId, result.data);
+
+    if(!newMessage) {
+        return NextResponse.json({error: 'Not Found'}, {status: 404});
+    }
+
+    return NextResponse.json(newMessage, {status: 201});
 }
