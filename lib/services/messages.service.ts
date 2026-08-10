@@ -1,5 +1,8 @@
+import z from "zod";
 import { getMessagesByConversationIdRepo } from "../repositories/messages.repository";
 import { getConversationById } from "./conversations.service";
+import { CreateMessageSchema } from "../validations/messages.schema";
+import { getEmployeeByUserId } from "../repositories/employees.repository";
 
 
 export async function getMessagesByConversationId(
@@ -19,7 +22,7 @@ export async function getMessagesByConversationId(
 export async function createMessage(
     userId: string,
     conversationId: number,
-    data: string,
+    data: z.infer<typeof CreateMessageSchema>,
 ) {
     const conversation = await getConversationById(userId, conversationId);
     if(!conversation){
@@ -29,4 +32,11 @@ export async function createMessage(
     const business_id = conversation.business_id;
 
     // <- write-specific part goes here
+    const employee = await getEmployeeByUserId(userId);
+    if(!employee){
+        return null;
+    }
+
+    // still to come: build the message, insert it
+
 }
