@@ -45,12 +45,12 @@ export const messages = pgTable("messages", {
     conversation_id: integer().references(() => conversations.conversation_id).notNull(),
     business_id: integer().references(() => businesses.business_id).notNull(),
     message_text: text(),
+    message_media_url: text(),
+    message_media_type: text(),
     message_id: integer().primaryKey().generatedAlwaysAsIdentity(),
     sender_type: senderTypeEnum().notNull(),
     sender_customer_id: integer().references(() => customers.customer_id),
     sender_employee_id: integer().references(() => employees.employee_id),
-    message_media_url: text(),
-    message_media_type: text(),
     created_at: timestamp().defaultNow(),
 }, (table) => [
     check(

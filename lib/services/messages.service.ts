@@ -1,5 +1,5 @@
 import z from "zod";
-import { getMessagesByConversationIdRepo } from "../repositories/messages.repository";
+import { createMessageRepo, getMessagesByConversationIdRepo } from "../repositories/messages.repository";
 import { getConversationById } from "./conversations.service";
 import { CreateMessageSchema } from "../validations/messages.schema";
 import { getEmployeeByUserId } from "../repositories/employees.repository";
@@ -38,5 +38,14 @@ export async function createMessage(
     }
 
     // still to come: build the message, insert it
+    const newMessage = {
+        conversation_id: conversationId,
+        business_id: business_id,
+        sender_type: 'employee' as const,
+        sender_employee_id: employee.employee_id,
+        ...data,
+    };
 
+    const created = await createMessageRepo(newMessage);
+    return created;
 }
