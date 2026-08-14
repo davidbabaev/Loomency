@@ -6,6 +6,7 @@ import { CreateMessageSchema } from "@/lib/validations/messages.schema";
 import { error } from "console";
 import { headers } from "next/headers";
 import { NextResponse } from "next/server";
+import z from "zod";
 
 // GET - what gety needs:
 // headers - is Next's function for reading the incoming request's headers, and betterauth needs them because the session token rides in the coockie header. 
@@ -75,7 +76,10 @@ export async function POST(
 
     const result = CreateMessageSchema.safeParse(body);
     if(!result.success){
-        return NextResponse.json({error:'Invalid request body'}, {status: 400})
+        return NextResponse.json(
+            {error: z.flattenError(result.error)},
+            {status: 400}
+        )
     }
 
     const newMessage = await createMessage(userId, conversationId, result.data);

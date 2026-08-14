@@ -3,6 +3,7 @@ import { createMessageRepo, getMessagesByConversationIdRepo } from "../repositor
 import { getConversationById } from "./conversations.service";
 import { CreateMessageSchema } from "../validations/messages.schema";
 import { getEmployeeByUserId } from "../repositories/employees.repository";
+import { ForbiddenError, NotFoundError } from "../errors";
 
 
 export async function getMessagesByConversationId(
@@ -26,7 +27,7 @@ export async function createMessage(
 ) {
     const conversation = await getConversationById(userId, conversationId);
     if(!conversation){
-        return null;
+        throw new NotFoundError("Conversation not found")
     }
 
     const business_id = conversation.business_id;
@@ -34,7 +35,7 @@ export async function createMessage(
     // <- write-specific part goes here
     const employee = await getEmployeeByUserId(userId);
     if(!employee){
-        return null;
+        throw new ForbiddenError("Access denied")
     }
 
     // still to come: build the message, insert it
