@@ -10,10 +10,13 @@ export async function getMessagesByConversationId(
     userId: string, 
     conversationId: number
 ) {
-    const conversation = await getConversationById(userId, conversationId);
-    if(!conversation){
-        return null;
-    }
+    const conversation = await getConversationById(
+        userId, 
+        conversationId
+    );
+    // if(!conversation){
+    //     throw new NotFoundError("Conversation not found")
+    // }
 
     const business_id = conversation.business_id;
 
@@ -26,9 +29,9 @@ export async function createMessage(
     data: z.infer<typeof CreateMessageSchema>,
 ) {
     const conversation = await getConversationById(userId, conversationId);
-    if(!conversation){
-        throw new NotFoundError("Conversation not found")
-    }
+    // if(!conversation){
+    //     throw new NotFoundError("Conversation not found")
+    // }
 
     const business_id = conversation.business_id;
 

@@ -4,7 +4,6 @@ import { auth } from "@/lib/auth";
 import { AppError } from "@/lib/errors";
 import { getMessagesByConversationId, createMessage } from "@/lib/services/messages.service";
 import { CreateMessageSchema } from "@/lib/validations/messages.schema";
-import { error } from "console";
 import { headers } from "next/headers";
 import { NextResponse } from "next/server";
 import z from "zod";
@@ -43,13 +42,20 @@ export async function GET(
     const userId: string = session.user.id;
     // reading a value out of nested object.
 
-    const messages = await getMessagesByConversationId(userId, conversationId);
+    try{
+        const messages = await getMessagesByConversationId(userId, conversationId);
+        // you can drop the second argument because the default for success is 200, it's not 201 because it not creating anything:
+        return NextResponse.json(messages);
 
-    if(!messages){
-        return NextResponse.json({error: 'Not found'}, {status: 404});
+    } catch(error){
+        if(error instanceof AppError){
+            return NextResponse.json(
+                {error: error.message},
+                {status: error.statusCode},
+            );
+        }
+        return NextResponse.json({error: 'Internal server error'}, {status: 500})
     }
-
-    return NextResponse.json(messages);
 } 
 
 export async function POST(

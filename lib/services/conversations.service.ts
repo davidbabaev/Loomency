@@ -1,5 +1,6 @@
 // the Service - chef (logic)
 
+import { ForbiddenError, NotFoundError } from "../errors";
 import { getAllConversations, getConversationByIdRepo, insertConversation } from "../repositories/conversations.repository";
 import { getCustomerById } from "../repositories/customers.repository";
 import { getEmployeeByUserId } from "../repositories/employees.repository";
@@ -9,20 +10,30 @@ import { CreateConversationInput } from "../validations/conversations.schema";
 export async function getConversations(userId: string) {
     const employee = await getEmployeeByUserId(userId)
     if(!employee){
-        return null;
+        throw new ForbiddenError("Access denied");
     }
     const business_id = employee.business_id
 
     return await getAllConversations(business_id)
 }
 
-export async function getConversationById(userId: string, conversationId: number) {
+export async function getConversationById(
+    userId: string, 
+    conversationId: number
+) {
     const employee = await getEmployeeByUserId(userId);
     if(!employee){
-        return null
+        throw new ForbiddenError("Access denied");
     }
 
-    return await getConversationByIdRepo(conversationId, employee.business_id);
+    const conversation = await getConversationByIdRepo(
+        conversationId, 
+        employee.business_id
+    );
+    if(!conversation){
+        throw new NotFoundError("conversation not found");
+    }
+    return conversation;
 }
 
 export async function createConversation(
@@ -32,13 +43,13 @@ export async function createConversation(
     const employee = await getEmployeeByUserId(userId);
 
     if(!employee){
-        return null;
+        throw new ForbiddenError("Access denied");
     }
 
     // ↓↓↓ NEW ↓↓↓
     const customer = await getCustomerById(data.customer_id);
     if(!customer || customer.business_id !== employee.business_id ){
-        return null;
+        throw new NotFoundError("Customer not found")
     }
 
     // ___________
