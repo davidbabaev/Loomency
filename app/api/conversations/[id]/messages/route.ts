@@ -1,6 +1,7 @@
 // 3 imports
 
 import { auth } from "@/lib/auth";
+import { AppError } from "@/lib/errors";
 import { getMessagesByConversationId, createMessage } from "@/lib/services/messages.service";
 import { CreateMessageSchema } from "@/lib/validations/messages.schema";
 import { error } from "console";
@@ -82,11 +83,17 @@ export async function POST(
         )
     }
 
-    const newMessage = await createMessage(userId, conversationId, result.data);
+    try{
+        const newMessage = await createMessage(userId, conversationId, result.data);
+        return NextResponse.json(newMessage, {status: 201});
 
-    if(!newMessage) {
-        return NextResponse.json({error: 'Not Found'}, {status: 404});
+    } catch (error){
+        if(error instanceof AppError){
+            return NextResponse.json(
+                {error: error.message},
+                {status: error.statusCode},
+            );
+        }
+        return NextResponse.json({error: 'Internal server error'}, {status: 500});
     }
-
-    return NextResponse.json(newMessage, {status: 201});
 }
