@@ -5,6 +5,8 @@ import { headers } from "next/headers";
 import { NextResponse } from "next/server";
 import { createConversation, getConversations } from "@/lib/services/conversations.service";
 import { CreateConversationSchema } from "@/lib/validations/conversations.schema";
+import { AppError } from "@/lib/errors";
+import z from "zod";
 
 export async function GET() {
     const session = await auth.api.getSession({
@@ -16,13 +18,21 @@ export async function GET() {
     }
 
     const userId: string = session.user.id;
-    const conversations = await getConversations(userId);
 
-    if(!conversations) {
-        return NextResponse.json({error: 'Forbidden'}, {status: 403});
+    try{
+        const conversations = await getConversations(userId);
+        return NextResponse.json(conversations);
+    } 
+    catch(error){
+        if(error instanceof AppError){
+            return NextResponse.json(
+                {error: error.message},
+                {status: error.statusCode},
+            )
+        }
+        return NextResponse.json({error: "Internal server error"}, {status: 500})
     }
     
-    return NextResponse.json(conversations);
 }
 
 export async function POST(request: Request) {
@@ -40,14 +50,25 @@ export async function POST(request: Request) {
     
     const result = CreateConversationSchema.safeParse(body);
     if(!result.success){
-        return NextResponse.json({error: "Invalid request body"}, {status: 400});
+        return NextResponse.json(
+            {error: z.flattenError(result.error)}, 
+            {status: 400}
+        );
     }
 
-    const newConversation = await createConversation(userId, result.data)
-
-    if(!newConversation) {
-        return NextResponse.json({error:'Forbidden'}, {status: 403});
+    try{
+        const newConversation = await createConversation(userId, result.data)
+        return NextResponse.json(newConversation, {status: 201});
+    }
+    catch(error){
+        if(error instanceof AppError) {
+            return NextResponse.json(
+                {error: error.message},
+                {status: error.statusCode},
+            )
+        }
+        return NextResponse.json({error:'Internal server error'}, {status: 500});
     }
 
-    return NextResponse.json(newConversation, {status: 201});
+
 }

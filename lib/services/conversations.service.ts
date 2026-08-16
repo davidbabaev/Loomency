@@ -31,7 +31,7 @@ export async function getConversationById(
         employee.business_id
     );
     if(!conversation){
-        throw new NotFoundError("conversation not found");
+        throw new NotFoundError("Conversation not found");
     }
     return conversation;
 }
