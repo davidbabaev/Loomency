@@ -1,6 +1,7 @@
 import { asc, eq } from "drizzle-orm";
 import { db } from "../db";
 import { customers } from "../db/schema";
+type NewCustomer = typeof customers.$inferInsert;
 
 
 export async function getCustomerById(customerId: number){
@@ -18,4 +19,12 @@ export async function getAllCustomers(business_id: number){
         .from(customers)
         .where(eq(customers.business_id, business_id))
         .orderBy(asc(customers.created_at))
+}
+
+export async function insertCustomer(data: NewCustomer){
+    const [newCustomer] = await db
+        .insert(customers)
+        .values(data)
+        .returning();
+    return newCustomer; 
 }
