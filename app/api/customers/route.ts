@@ -53,9 +53,16 @@ export async function POST(request: Request){
     }
 
     try{
-        const newCustomer = await createCustomer(userId, result.data) 
+        const newCustomer = await createCustomer(userId, result.data); 
+        return NextResponse.json(newCustomer, {status: 201});
     }
     catch(error){
-        
+        if(error instanceof AppError){
+            return NextResponse.json(
+                {error: error.message},
+                {status: error.statusCode},
+            )
+        }
+        return NextResponse.json({error: "Internal server error"}, {status: 500});
     }
 }

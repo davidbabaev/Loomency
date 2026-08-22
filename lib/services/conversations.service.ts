@@ -47,7 +47,7 @@ export async function createConversation(
     }
 
     // ↓↓↓ NEW ↓↓↓
-    const customer = await getCustomerById(data.customer_id);
+    const customer = await getCustomerById(data.customer_id, employee.business_id);
     if(!customer || customer.business_id !== employee.business_id ){
         throw new NotFoundError("Customer not found")
     }

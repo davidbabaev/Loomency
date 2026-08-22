@@ -1,14 +1,20 @@
-import { asc, eq } from "drizzle-orm";
+import { and, asc, eq } from "drizzle-orm";
 import { db } from "../db";
 import { customers } from "../db/schema";
 type NewCustomer = typeof customers.$inferInsert;
 
 
-export async function getCustomerById(customerId: number){
+export async function getCustomerById(
+    customerId: number,
+    business_id: number
+){
     const result = await db
         .select()
         .from(customers)
-        .where(eq(customers.customer_id, customerId))
+        .where(and(
+            eq(customers.customer_id, customerId),
+            eq(customers.business_id, business_id)
+        ))
         .limit(1)
     return result[0];
 } 
