@@ -34,3 +34,19 @@ export async function insertCustomer(data: NewCustomer){
         .returning();
     return newCustomer; 
 }
+
+export async function updateCustomer(
+    customerId: number,
+    business_id: number,
+    data: Partial<NewCustomer>,
+){
+    const [updated] = await db
+        .update(customers)
+        .set(data)
+        .where(and(
+            eq(customers.customer_id, customerId),
+            eq(customers.business_id, business_id),
+        ))
+        .returning();
+    return updated;
+}

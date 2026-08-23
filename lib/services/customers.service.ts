@@ -1,8 +1,8 @@
 import z from "zod";
 import { ForbiddenError, NotFoundError } from "../errors";
-import { getAllCustomers, getCustomerById, insertCustomer } from "../repositories/customers.repository";
+import { getAllCustomers, getCustomerById, insertCustomer, updateCustomer } from "../repositories/customers.repository";
 import { getEmployeeByUserId } from "../repositories/employees.repository";
-import { CreateCustomerSchema } from "../validations/customers.schema";
+import { CreateCustomerSchema, UpdateCustomerSchema } from "../validations/customers.schema";
 
 
 export async function getCustomers(userId: string){
@@ -47,4 +47,23 @@ export async function createCustomer(
     })
 
     return newCustomer;
+}
+
+export async function updateCustomerById(
+    userId: string,
+    customerId: number,
+    data: z.infer<typeof UpdateCustomerSchema>,
+){
+    const employee = await getEmployeeByUserId(userId);
+    if(!employee){
+        throw new ForbiddenError('Access denied')
+    }
+
+    const business_id = employee.business_id;
+
+    const updatedCustomer = await updateCustomer(customerId, business_id, data);
+    if(!updatedCustomer){
+        throw new NotFoundError('Customer not found');
+    }
+    return updatedCustomer;
 }
