@@ -2,6 +2,7 @@ import { sql } from "drizzle-orm";
 import { integer, text, pgTable, timestamp, unique, pgEnum, check } from "drizzle-orm/pg-core";
 
 export const senderTypeEnum = pgEnum('sender_type', ['customer', 'employee', 'agent']);
+export const roleTypeEnum = pgEnum('role', ['admin', 'member']);
 
 export const businesses = pgTable("businesses", {
     business_id: integer().primaryKey().generatedAlwaysAsIdentity(),
@@ -27,7 +28,7 @@ export const employees = pgTable("employees", {
     employee_id: integer().primaryKey().generatedAlwaysAsIdentity(),
     business_id: integer().references(() => businesses.business_id).notNull(),
     created_at: timestamp().defaultNow(),
-    role: text()
+    role: roleTypeEnum().notNull().default('member')
 },
     (table) => [
         unique().on(table.user_id_betterauth, table.business_id)
