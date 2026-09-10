@@ -3,7 +3,7 @@ import { createMessageRepo, getMessagesByConversationIdRepo } from "../repositor
 import { getConversationById } from "./conversations.service";
 import { CreateMessageSchema } from "../validations/messages.schema";
 import { getEmployeeByUserId } from "../repositories/employees.repository";
-import { ForbiddenError, NotFoundError } from "../errors";
+import { ForbiddenError } from "../errors";
 
 
 export async function getMessagesByConversationId(
@@ -14,9 +14,6 @@ export async function getMessagesByConversationId(
         userId, 
         conversationId
     );
-    // if(!conversation){
-    //     throw new NotFoundError("Conversation not found")
-    // }
 
     const business_id = conversation.business_id;
 
@@ -29,9 +26,6 @@ export async function createMessage(
     data: z.infer<typeof CreateMessageSchema>,
 ) {
     const conversation = await getConversationById(userId, conversationId);
-    // if(!conversation){
-    //     throw new NotFoundError("Conversation not found")
-    // }
 
     const business_id = conversation.business_id;
 

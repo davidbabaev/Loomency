@@ -11,7 +11,7 @@ export async function getCustomers(userId: string){
         throw new ForbiddenError("Access denied");
     }
     const business_id = employee.business_id;
-    return await getAllCustomers(business_id)
+    return await getAllCustomers(business_id);
 }
 
 export async function getCustomer(
