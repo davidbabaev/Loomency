@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { integer, text, pgTable, timestamp, unique, pgEnum, check } from "drizzle-orm/pg-core";
+import { integer, text, pgTable, timestamp, unique, pgEnum, check, boolean } from "drizzle-orm/pg-core";
 
 export const senderTypeEnum = pgEnum('sender_type', ['customer', 'employee', 'agent']);
 export const roleTypeEnum = pgEnum('role', ['admin', 'member']);
@@ -63,3 +63,13 @@ export const messages = pgTable("messages", {
         `
     )
 ]);
+
+export const user = pgTable("user", {
+    id: text().primaryKey(),
+    name: text().notNull(),
+    email: text().notNull().unique(),
+    emailVerified: boolean().notNull(),
+    image: text(),
+    createdAt: timestamp({withTimezone: true}).notNull(),
+    updatedAt: timestamp({withTimezone: true}).notNull(),
+})
