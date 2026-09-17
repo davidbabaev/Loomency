@@ -3,6 +3,7 @@ import { integer, text, pgTable, timestamp, unique, pgEnum, check, boolean } fro
 
 export const senderTypeEnum = pgEnum('sender_type', ['customer', 'employee', 'agent']);
 export const roleTypeEnum = pgEnum('role', ['admin', 'member']);
+export const invitationStatusEnum = pgEnum('invitation_status', ['pending', 'accepted', 'revoked']);
 
 export const businesses = pgTable("businesses", {
     business_id: integer().primaryKey().generatedAlwaysAsIdentity(),
@@ -63,3 +64,16 @@ export const messages = pgTable("messages", {
         `
     )
 ]);
+
+export const invitations = pgTable("invitations", {
+    invitation_id: integer().primaryKey().generatedAlwaysAsIdentity(),
+    email: text().notNull(),
+    business_id: integer().references(() => businesses.business_id).notNull(),
+    role: roleTypeEnum().notNull(),
+    token_hash: text().notNull().unique(),
+    status: invitationStatusEnum().notNull().default('pending'),
+    expires_at: timestamp().notNull(),
+    invited_by_employee_id: integer().references(() => employees.employee_id),
+    created_at: timestamp().defaultNow(),
+    accepted_at: timestamp(),
+});

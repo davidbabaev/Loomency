@@ -22,8 +22,9 @@ export async function addEmployee(
     }
 
     const newEmployee = await insertEmployee({
-        ...data,
+        user_id_betterauth: invitedUser.id,
         business_id: employee.business_id,
+        role: data.role
     })
 
     return newEmployee;
