@@ -1,10 +1,10 @@
 import { auth } from "@/lib/auth";
 import { AppError } from "@/lib/errors";
-import { addEmployee } from "@/lib/services/employees.service";
+import { createInvitation } from "@/lib/services/invitations.service";
 import { CreateEmployeeSchema } from "@/lib/validations/employees.schema";
 import { headers } from "next/headers";
 import { NextResponse } from "next/server";
-import z, { safeParse } from "zod";
+import z from "zod";
 
 export async function POST(request: Request){
     const session = await auth.api.getSession({
@@ -25,8 +25,11 @@ export async function POST(request: Request){
     }
 
     try{
-        const employee = await addEmployee(userId, result.data);
-        return NextResponse.json(employee, {status: 201})
+        const invitation = await createInvitation(userId, result.data);
+        return NextResponse.json({
+            invitation: invitation.invitation,
+            inviteUrl: `http://localhost:3000/invite/${invitation.token}`
+        }, {status: 201})
     }
     catch(error){
         if(error instanceof AppError){

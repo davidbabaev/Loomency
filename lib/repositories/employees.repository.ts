@@ -1,6 +1,6 @@
 import { employees } from "../db/schema";
 import { db } from "../db";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { user } from "../db/auth-schema";
 
 type NewEmployee = typeof employees.$inferInsert;
@@ -25,10 +25,34 @@ export async function getUserByEmail(email: string){
     return result[0];
 }
 
-export async function insertEmployee(data: NewEmployee){
-    const [newEmployee] = await db  
+export async function insertEmployee(data: NewEmployee, tx = db){
+    const [newEmployee] = await tx  
         .insert(employees)
         .values(data)
         .returning();
     return newEmployee;
+}
+
+export async function getUserById(id: string){
+    const result = await db
+        .select()
+        .from(user)
+        .where(eq(user.id, id))
+        .limit(1)
+    return result[0];
+}
+
+export async function getEmployeeByUserAndBusiness(
+    userId: string, 
+    business_id: number
+){
+    const result = await db
+        .select()
+        .from(employees)
+        .where(and(
+            eq(employees.user_id_betterauth, userId),
+            eq(employees.business_id, business_id),
+        ))
+        .limit(1)
+    return result[0];
 }
