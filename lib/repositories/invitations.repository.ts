@@ -2,6 +2,7 @@ import z from "zod";
 import { invitations } from "../db/schema";
 import { db } from "../db";
 import { and, eq } from "drizzle-orm";
+import { Transaction } from "../db/types";
 
 type NewInvitation = typeof invitations.$inferInsert;
 
@@ -38,8 +39,11 @@ export async function getPendingInvitationEmail(
     return result[0];
 }
 
-export async function markInvitationAccepted(invitation_id: number){
-    const [updated] = await db
+export async function markInvitationAccepted(
+    invitation_id: number, 
+    tx: Transaction | typeof db = db
+){
+    const [updated] = await tx
         .update(invitations)
         .set({
             status: 'accepted',

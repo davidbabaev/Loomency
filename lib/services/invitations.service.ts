@@ -1,9 +1,10 @@
 import z from "zod";
 import { CreateEmployeeSchema } from "../validations/employees.schema";
-import { getEmployeeByUserAndBusiness, getEmployeeByUserId, getUserById } from "../repositories/employees.repository";
+import { getEmployeeByUserAndBusiness, getEmployeeByUserId, getUserById, insertEmployee } from "../repositories/employees.repository";
 import { ConflictError, ForbiddenError, NotFoundError } from "../errors";
-import { getInvitationByTokenHash, getPendingInvitationEmail, insertInvitation } from "../repositories/invitations.repository";
+import { getInvitationByTokenHash, getPendingInvitationEmail, insertInvitation, markInvitationAccepted } from "../repositories/invitations.repository";
 import { generateToken, hashToken } from "../tokens";
+import { db } from "../db";
 
 export async function createInvitation(
     userId: string,
@@ -67,5 +68,14 @@ export async function acceptInvitation(userId: string, rawToken: string){
         throw new ConflictError('You are already a memeber of this business');
     }
 
-    // return await db.transa
+    return await db.transaction(async (tx) => {
+        const newEmployee = await insertEmployee({
+            user_id_betterauth: userId,
+            business_id: invitation.business_id,
+            role: invitation.role,
+        }, tx);
+
+        await markInvitationAccepted(invitation.invitation_id, tx)
+        return newEmployee;
+    })
 }

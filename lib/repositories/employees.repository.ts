@@ -2,6 +2,7 @@ import { employees } from "../db/schema";
 import { db } from "../db";
 import { and, eq } from "drizzle-orm";
 import { user } from "../db/auth-schema";
+import { Transaction } from "../db/types";
 
 type NewEmployee = typeof employees.$inferInsert;
 
@@ -25,7 +26,10 @@ export async function getUserByEmail(email: string){
     return result[0];
 }
 
-export async function insertEmployee(data: NewEmployee, tx = db){
+export async function insertEmployee(
+    data: NewEmployee, 
+    tx: Transaction | typeof db = db
+){
     const [newEmployee] = await tx  
         .insert(employees)
         .values(data)
