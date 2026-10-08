@@ -2,6 +2,52 @@ import Anthropic from "@anthropic-ai/sdk";
 
 const client = new Anthropic();
 
+type ToolDefinition = {
+  toolName: string;
+  description: string;
+  parameters: {
+    type: "object";
+    properties: Record<string, { type: string; description: string }>;
+    required: string[];
+  };
+};
+
+const tools: ToolDefinition[] = [
+  {
+    toolName: "get_order_status",
+    description: "Looks up the current delivery status of a customer's order.",
+    parameters: {
+      type: "object",
+      properties: {
+        order_id: { type: "string", description: "The order number, digits only, without the # sign" },
+      },
+      required: ["order_id"],
+    },
+  },
+  {
+    toolName: "get_opening_hours",
+    description: "Returns the restaurant's opening hours for a given day.",
+    parameters: {
+      type: "object",
+      properties: {
+        day: { type: "string", description: "Day of the week in English, for example saturday" },
+      },
+      required: ["day"],
+    },
+  },
+  {
+    toolName: "reply_to_customer",
+    description: "Sends the final reply to the customer and ends the conversation turn.",
+    parameters: {
+      type: "object",
+      properties: {
+        message: { type: "string", description: "The full message to send to the customer" },
+      },
+      required: ["message"],
+    },
+  },
+];
+
 const system =
   "You are the WhatsApp assistant for Mario's Pizza. " +
   "You can take these actions:\n" +
@@ -29,7 +75,15 @@ function parseAction(text: string): Action | null {
   if (end === -1) return null;
 
   try {
-    return JSON.parse(text.substring(start + 9, end));
+    const parsed = JSON.parse(text.substring(start + 9, end));
+    if (
+      typeof parsed.toolName === "string" &&
+      typeof parsed.args === "object" &&
+      parsed.args !== null
+    ) {
+      return parsed;
+    }
+    return null;
   } catch {
     return null;
   }
@@ -44,60 +98,43 @@ const fakeHours: Record<string, string> = {
   sunday: "12:00-23:00",
 };
 
-function runAction(action: Action): string {
+type ActionResult = { result: string } | { error: string };
+
+function runAction(action: Action): ActionResult {
   if (action.toolName === "get_order_status") {
-    return fakeOrders[action.args.order_id] ?? "Order not found";
+    const orderId = action.args.order_id;
+    if (!orderId) return { error: "Missing argument: order_id" };
+    const status = fakeOrders[orderId];
+    return status ? { result: status } : { error: `Order ${orderId} not found` };
   }
   if (action.toolName === "get_opening_hours") {
-    return fakeHours[action.args.day.toLowerCase()] ?? "No hours found for that day";
+    const day = action.args.day;
+    if (!day) return { error: "Missing argument: day" };
+    const hours = fakeHours[day.toLowerCase()];
+    return hours ? { result: hours } : { error: `No opening hours found for ${day}` };
   }
-  return `Unknown action: ${action.toolName}`;
+  return { error: `Unknown action: ${action.toolName}` };
 }
 
-/* async function main() {
-  const conversation: Anthropic.MessageParam[] = [];
-  conversation.push({ role: "user", content: "Hi, where is my order #1042?" });
-
-  // Turn 1: Claude picks an action
-  const response1 = await client.messages.create({
-    model: "claude-haiku-4-5-20251001",
-    max_tokens: 2000,
-    system: system,
-    messages: conversation,
-  });
-  const text1 = getText(response1);
-  conversation.push({ role: "assistant", content: text1 });
-
-  const action1 = parseAction(text1);
-  console.log("Turn 1 action:", action1);
-  if (!action1) return;
-
-  // Your code runs the action and sends the result back
-  const result = runAction(action1.name, action1.argument);
-  console.log("Result:", result);
-  conversation.push({ role: "user", content: `Result: ${result}` });
-
-  // Turn 2: Claude picks the next action
-  const response2 = await client.messages.create({
-    model: "claude-haiku-4-5-20251001",
-    max_tokens: 2000,
-    system: system,
-    messages: conversation,
-  });
-  const action2 = parseAction(getText(response2));
-  console.log("Turn 2 action:", action2);
-} */
-
-  async function main() {
+async function main() {
+  // console.log(runAction({ toolName: "get_opening_hours", args: {} }));
+  // return;
   const conversation: Anthropic.MessageParam[] = [
-    { role: "user", content: "Hi, where is my order #1042? And are you open on Saturday?" },
+    { role: "user", content: "Hi, where is my order #9999?" },
   ];
   const maxIterations = 5;
+  const maxErrors = 3;
+  let errorCount = 0;
   let iterations = 0;
   let finished = false;
 
   while (iterations < maxIterations) {
     iterations++;
+    if (errorCount >= maxErrors) {
+      console.log("\nToo many errors. Reply to customer: Sorry, I'm having trouble with that. Let me connect you with our team.");
+      finished = true;
+      break;
+    }
     console.log(`\n--- Iteration ${iterations} ---`);
 
     const response = await client.messages.create({
@@ -113,6 +150,7 @@ function runAction(action: Action): string {
     console.log("Action:", action);
 
     if (!action) {
+      errorCount++;
       conversation.push({
         role: "user",
         content: "Error: no valid action found. Respond with exactly one action block.",
@@ -127,8 +165,9 @@ function runAction(action: Action): string {
     }
 
     const result = runAction(action);
+    if ("error" in result) errorCount++;
     console.log("Result:", result);
-    conversation.push({ role: "user", content: `Result: ${result}` });
+    conversation.push({ role: "user", content: JSON.stringify(result) });
   }
 
   if (!finished) {
