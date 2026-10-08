@@ -49,11 +49,10 @@ const tools: ToolDefinition[] = [
 ];
 
 const system =
-  "You are the WhatsApp assistant for Mario's Pizza. " +
-  "You can take these actions:\n" +
-  "- get_order_status: args {\"order_id\": string}\n" +
-  "- get_opening_hours: args {\"day\": string}\n" +
-  "- reply_to_customer: args {\"message\": string}\n\n" +
+  "You are the WhatsApp assistant for Mario's Pizza.\n\n" +
+  "Available tools:\n" +
+  JSON.stringify(tools, null, 2) +
+  "\n\n" +
   "You will always respond in this exact format:\n" +
   "<your reasoning>\n" +
   "```action\n" +
