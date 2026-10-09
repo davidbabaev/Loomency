@@ -115,11 +115,26 @@ function runAction(action: Action): ActionResult {
   return { error: `Unknown action: ${action.toolName}` };
 }
 
+function validateArgs(action: Action): string | null {
+  const tool = tools.find((t) => t.toolName === action.toolName);
+  if (!tool) {
+    const available = tools.map((t) => t.toolName).join(", ");
+    return `Unknown action: ${action.toolName}. Available actions: ${available}`;
+  }
+
+  for (const name of tool.parameters.required) {
+    const value = action.args[name];
+    if (typeof value !== "string" || value.trim() === "") {
+      const hint = tool.parameters.properties[name].description;
+      return `Missing or invalid argument "${name}" for ${tool.toolName}. Expected: ${hint}`;
+    }
+  }
+  return null;
+}
+
 async function main() {
-  // console.log(runAction({ toolName: "get_opening_hours", args: {} }));
-  // return;
   const conversation: Anthropic.MessageParam[] = [
-    { role: "user", content: "Hi, where is my order #9999?" },
+    { role: "user", content: "Hi, where is my order #1042? And are you open on Saturday?" },
   ];
   const maxIterations = 5;
   const maxErrors = 3;
@@ -154,6 +169,14 @@ async function main() {
         role: "user",
         content: "Error: no valid action found. Respond with exactly one action block.",
       });
+      continue;
+    }
+
+    const validationError = validateArgs(action);
+    if (validationError) {
+      console.log("Validation error:", validationError);
+      errorCount++;
+      conversation.push({ role: "user", content: JSON.stringify({ error: validationError }) });
       continue;
     }
 
