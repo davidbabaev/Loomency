@@ -15,13 +15,14 @@ const client = new Anthropic({apiKey});
 const MODEL = "claude-haiku-4-5-20251001";
 // const MODEL = "calude-haiku-4-5-20251001"; // error check
 
-export async function callClaude(userText: string){
+export async function callClaude(/* userText: string */ systemPrompt: string, userText: string){
 
     let response;
     try{
         response = await client.messages.create({
             model: MODEL,
             max_tokens: 300,
+            system: systemPrompt,
             messages: [{role: 'user', content: userText}]
         });
     }
