@@ -1,27 +1,17 @@
+import { toChatMessages } from "@/lib/agent/history";
 import { buildSystemPrompt } from "@/lib/agent/system-prompt";
 import { ExternalServiceError } from "@/lib/errors";
-import { callClaude } from "@/lib/llm/claude.client";
+import { callClaude, ChatMessage } from "@/lib/llm/claude.client";
 import { getBusinessById } from "@/lib/repositories/businesses.repository";
+import { getMessagesByConversationIdRepo } from "@/lib/repositories/messages.repository";
 
 const FALLBACK_REPLY = "Sorry, I'm having trouble right now. A team member will get back to you shortly."
 
-// const SYSTEM_PROMPT = "You are the WhatsApp assistant for Mario's Pizza, a pizzeria in Haifa. " + "Be warm and brief. " + "If you don't know something, say no. Never invent information";
-
-// const marios = {
-//     business_id: 1,
-//     business_name: "Mario's Pizza",
-//     country: "Israel",
-//     address: "Herzl 10, Haifa",
-//     field: "Pizzeria",
-//     phone_number: "04-1234567",
-//     created_at: new Date(),
-// };
-
-const BUSINESS_ID = 1;
+const BUSINESS_ID = 2;
+const CONVERSATION_ID = 7;
 
 async function main(){
     try{
-        // const result = await callClaude(SYSTEM_PROMPT ,"Are you open on Saturday?");
         const business = await getBusinessById(BUSINESS_ID)
 
         if(!business){
@@ -30,12 +20,38 @@ async function main(){
         }
 
         const systemPrompt = buildSystemPrompt(business);
-        console.log(systemPrompt);
+
+        const rows = await getMessagesByConversationIdRepo(CONVERSATION_ID, BUSINESS_ID);
+        const conversation = toChatMessages(rows);
+
+        if(conversation.length === 0){
+            console.log('No messages  in this conversation');
+            return;
+        }
+
+        console.log(conversation);
+        const result = await callClaude(systemPrompt, conversation);
+        console.log('Agent:', result.text);
+        console.log('Input tokens:', result.inputTokens);
         
-        const result = await callClaude(systemPrompt, "Are you open on Saturday?")
+        
+
+/*         const conversation: ChatMessage[] = [];
+        conversation.push({role: "user", content: "Hi, I saw you have Porsche 911 for sale?"})
+
+        const result = await callClaude(systemPrompt, conversation)
         console.log(result.text);
         console.log(result.stopReason);
         console.log("inputTokens", result.inputTokens, "outputTokens" ,result.outputTokens);
+
+        conversation.push({role: "assistant", content: result.text});
+        // conversation.push({role: "user", content: "Is it available in yellow?"});
+        conversation.push({ role: "user", content: "Which car did I ask about?" });
+        
+        const second = await callClaude(systemPrompt, conversation);
+        console.log("Second answer:", second.text);
+        console.log("Input tokens:", result.inputTokens, "->", second.inputTokens); */
+        
     }
     catch(err){
         if(err instanceof ExternalServiceError){
