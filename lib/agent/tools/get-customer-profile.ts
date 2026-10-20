@@ -1,5 +1,6 @@
+import { ToolCard } from "@/lib/llm/claude.client";
 
-export const getCustomerProfileCard = {
+export const getCustomerProfileCard: ToolCard = {
     name: "get_customer_profile",
     description:
         "Returns the name and phone number of the customer you are currently talking to. " +

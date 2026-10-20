@@ -18,9 +18,25 @@ const MODEL = "claude-haiku-4-5-20251001";
 export type ChatMessage = {
     role: "user" | "assistant";
     content: string;
+}       
+
+export type ToolCard = {
+    name: string;
+    description: string;
+    input_schema: { // can contain another object shape inside it.
+        type: "object";
+        properties: Record<string, unknown>; //means “an object whose keys are Key and whose values are Value.”
+        // string keys: input names like model or color.
+        // unknown values: each input’s description can have any shape, so we don’t restrict it here.
+        required?:string[]; // ? means optional
+    };
 }
 
-export async function callClaude(systemPrompt: string, messages: ChatMessage[]){
+export async function callClaude(
+    systemPrompt: string, 
+    messages: ChatMessage[],
+    tools: ToolCard[]
+){
 
     let response;
     try{
@@ -29,6 +45,7 @@ export async function callClaude(systemPrompt: string, messages: ChatMessage[]){
             max_tokens: 300,
             system: systemPrompt,
             messages,
+            tools,
         });
     }
     catch(err){

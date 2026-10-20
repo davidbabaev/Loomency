@@ -1,7 +1,8 @@
 import { toChatMessages } from "@/lib/agent/history";
 import { buildSystemPrompt } from "@/lib/agent/system-prompt";
+import { getCustomerProfileCard } from "@/lib/agent/tools/get-customer-profile";
 import { ExternalServiceError } from "@/lib/errors";
-import { callClaude, ChatMessage } from "@/lib/llm/claude.client";
+import { callClaude } from "@/lib/llm/claude.client";
 import { getBusinessById } from "@/lib/repositories/businesses.repository";
 import { getMessagesByConversationIdRepo } from "@/lib/repositories/messages.repository";
 
@@ -30,27 +31,10 @@ async function main(){
         }
 
         console.log(conversation);
-        const result = await callClaude(systemPrompt, conversation);
+        const result = await callClaude(systemPrompt, conversation,[getCustomerProfileCard]);
         console.log('Agent:', result.text);
+        console.log('Stop reason:', result.stopReason);
         console.log('Input tokens:', result.inputTokens);
-        
-        
-
-/*         const conversation: ChatMessage[] = [];
-        conversation.push({role: "user", content: "Hi, I saw you have Porsche 911 for sale?"})
-
-        const result = await callClaude(systemPrompt, conversation)
-        console.log(result.text);
-        console.log(result.stopReason);
-        console.log("inputTokens", result.inputTokens, "outputTokens" ,result.outputTokens);
-
-        conversation.push({role: "assistant", content: result.text});
-        // conversation.push({role: "user", content: "Is it available in yellow?"});
-        conversation.push({ role: "user", content: "Which car did I ask about?" });
-        
-        const second = await callClaude(systemPrompt, conversation);
-        console.log("Second answer:", second.text);
-        console.log("Input tokens:", result.inputTokens, "->", second.inputTokens); */
         
     }
     catch(err){
