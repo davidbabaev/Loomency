@@ -33,6 +33,7 @@ async function main(){
         console.log(conversation);
         const result = await callClaude(systemPrompt, conversation,[getCustomerProfileCard]);
         console.log('Agent:', result.text);
+        console.log('Blocks:', JSON.stringify(result.content, null, 2));
         console.log('Stop reason:', result.stopReason);
         console.log('Input tokens:', result.inputTokens);
         

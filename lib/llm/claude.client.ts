@@ -13,11 +13,15 @@ if(!apiKey){
 const client = new Anthropic({apiKey});
 
 const MODEL = "claude-haiku-4-5-20251001";
-// const MODEL = "calude-haiku-4-5-20251001"; // error check
+
+export type ContentBlock = 
+    | {type: "text"; text: string} 
+    | {type: "tool_use"; id: string; name: string; input: unknown}
+    | {type: "tool_result"; tool_use_id: string; content: string;   is_error?: boolean};
 
 export type ChatMessage = {
     role: "user" | "assistant";
-    content: string;
+    content: string | ContentBlock[];
 }       
 
 export type ToolCard = {
@@ -53,9 +57,26 @@ export async function callClaude(
         throw new ExternalServiceError("AI service is unavailable");
     }
 
+    const content: ContentBlock[] = [];
+
+    for(const block of response.content) {
+        if(block.type === "text") {
+            content.push({type: "text", text: block.text});
+        }
+        if(block.type === "tool_use"){
+            content.push({
+                type: "tool_use", 
+                id: block.id, 
+                name: block.name, 
+                input: block.input
+            })
+        }
+    }
+
     let text = "";
     const textBlock = response.content.find((block) => block.type === "text");
 
+    
     if(textBlock && textBlock.type === "text"){
         text = textBlock.text;
     }
@@ -64,6 +85,7 @@ export async function callClaude(
         text, 
         stopReason: response.stop_reason,
         inputTokens: response.usage.input_tokens,
-        outputTokens: response.usage.output_tokens
+        outputTokens: response.usage.output_tokens,
+        content
     };
 }
