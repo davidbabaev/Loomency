@@ -5,6 +5,7 @@ import { ExternalServiceError } from "@/lib/errors";
 import { callClaude } from "@/lib/llm/claude.client";
 import { getBusinessById } from "@/lib/repositories/businesses.repository";
 import { getMessagesByConversationIdRepo } from "@/lib/repositories/messages.repository";
+import { runAgentLoop } from "@/lib/services/agent.service";
 
 const FALLBACK_REPLY = "Sorry, I'm having trouble right now. A team member will get back to you shortly."
 
@@ -31,11 +32,18 @@ async function main(){
         }
 
         console.log(conversation);
-        const result = await callClaude(systemPrompt, conversation,[getCustomerProfileCard]);
-        console.log('Agent:', result.text);
-        console.log('Blocks:', JSON.stringify(result.content, null, 2));
-        console.log('Stop reason:', result.stopReason);
-        console.log('Input tokens:', result.inputTokens);
+        const reply = await runAgentLoop(
+            systemPrompt, 
+            conversation, 
+            {businessId: BUSINESS_ID, customerId: 2}
+        );
+        console.log("Reply to Dana:", reply);
+        
+        // const result = await callClaude(systemPrompt, conversation,[getCustomerProfileCard]);
+        // console.log('Agent:', result.text);
+        // console.log('Blocks:', JSON.stringify(result.content, null, 2));
+        // console.log('Stop reason:', result.stopReason);
+        // console.log('Input tokens:', result.inputTokens);
         
     }
     catch(err){
