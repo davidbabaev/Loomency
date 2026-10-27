@@ -1,20 +1,20 @@
 import { toChatMessages } from "@/lib/agent/history";
 import { buildSystemPrompt } from "@/lib/agent/system-prompt";
 import { getCustomerProfileCard } from "@/lib/agent/tools/get-customer-profile";
-import { ExternalServiceError } from "@/lib/errors";
+import { AppError, ExternalServiceError } from "@/lib/errors";
 import { callClaude } from "@/lib/llm/claude.client";
 import { getBusinessById } from "@/lib/repositories/businesses.repository";
 import { getMessagesByConversationIdRepo } from "@/lib/repositories/messages.repository";
-import { runAgentLoop } from "@/lib/services/agent.service";
+import { runAgent, runAgentLoop } from "@/lib/services/agent.service";
 
 const FALLBACK_REPLY = "Sorry, I'm having trouble right now. A team member will get back to you shortly."
 
-const BUSINESS_ID = 2;
+const BUSINESS_ID = 1;
 const CONVERSATION_ID = 7;
 
 async function main(){
     try{
-        const business = await getBusinessById(BUSINESS_ID)
+/*         const business = await getBusinessById(BUSINESS_ID)
 
         if(!business){
             console.log("Business not found");
@@ -37,17 +37,13 @@ async function main(){
             conversation, 
             {businessId: BUSINESS_ID, customerId: 2}
         );
+        console.log("Reply to Dana:", reply); */
+
+        const reply = await runAgent(CONVERSATION_ID, BUSINESS_ID);
         console.log("Reply to Dana:", reply);
-        
-        // const result = await callClaude(systemPrompt, conversation,[getCustomerProfileCard]);
-        // console.log('Agent:', result.text);
-        // console.log('Blocks:', JSON.stringify(result.content, null, 2));
-        // console.log('Stop reason:', result.stopReason);
-        // console.log('Input tokens:', result.inputTokens);
-        
     }
     catch(err){
-        if(err instanceof ExternalServiceError){
+        if(err instanceof AppError){
             console.log("Status", err.statusCode);
         }
         console.log("Reply to customer:", FALLBACK_REPLY);

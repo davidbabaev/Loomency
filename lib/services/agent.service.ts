@@ -1,7 +1,13 @@
+import { toChatMessages } from "../agent/history";
+import { buildSystemPrompt } from "../agent/system-prompt";
 import { getCustomerProfileCard } from "../agent/tools/get-customer-profile";
 import { runTool } from "../agent/tools/run-tool";
 import { ToolContext } from "../agent/tools/tool-context";
+import { AppError, NotFoundError } from "../errors";
 import { callClaude, ChatMessage, ContentBlock } from "../llm/claude.client";
+import { getBusinessById } from "../repositories/businesses.repository";
+import { getConversationByIdRepo } from "../repositories/conversations.repository";
+import { getMessagesByConversationIdRepo } from "../repositories/messages.repository";
 
 const MAX_ROUNDS = 5;
 const FALLBACK_REPLY = "Sorry, I'm having trouble right now. A team memeber will get back to you shortly";
@@ -29,4 +35,30 @@ export async function runAgentLoop(
         messages.push({role: "user", content: toolResults});
     }
     return FALLBACK_REPLY
+}
+
+export async function runAgent(conversationId: number, businessId: number): Promise<string> {
+    const conversation = await getConversationByIdRepo(conversationId, businessId);
+    if(!conversation) {
+        throw new NotFoundError("Conversation not found");
+    }
+    if(!conversation.customer_id){
+        throw new AppError("Conversation has no customer", 400)
+    }
+
+    const business = await getBusinessById(businessId);
+    if(!business){
+        throw new NotFoundError("Business not found");
+    }
+
+    const rows = await getMessagesByConversationIdRepo(conversationId, businessId);
+    const messages = toChatMessages(rows);
+    if(messages.length === 0) {
+        throw new AppError("Conversation has no messages", 400);
+    }
+
+    const systemPrompt = buildSystemPrompt(business);
+    const context = {businessId, customerId: conversation.customer_id};
+
+    return await runAgentLoop(systemPrompt, messages, context);
 }
