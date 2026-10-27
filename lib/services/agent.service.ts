@@ -10,7 +10,7 @@ import { getConversationByIdRepo } from "../repositories/conversations.repositor
 import { getMessagesByConversationIdRepo } from "../repositories/messages.repository";
 
 const MAX_ROUNDS = 5;
-const FALLBACK_REPLY = "Sorry, I'm having trouble right now. A team memeber will get back to you shortly";
+const FALLBACK_REPLY = "Sorry, I'm having trouble right now. A team member will get back to you shortly.";
 
 export async function runAgentLoop(
     systemPrompt: string,
@@ -20,8 +20,17 @@ export async function runAgentLoop(
     for(let round = 1; round <= MAX_ROUNDS; round++) {
         const result = await callClaude(systemPrompt, messages, [getCustomerProfileCard]);
 
-        if(result.stopReason !== "tool_use") {
-            return result.text;
+        // if(result.stopReason !== "tool_use") {
+        //     return result.text;
+        // }
+
+        if(result.stopReason !== "tool_use"){
+            if(result.stopReason === "end_turn" && result.text.trim() !== ""){
+                return result.text;
+            }
+
+            console.log("Agent gave an unusable answer:", result.stopReason);
+            return FALLBACK_REPLY;
         }
 
         messages.push({role: "assistant", content: result.content});

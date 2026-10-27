@@ -9,7 +9,7 @@ import { runAgent, runAgentLoop } from "@/lib/services/agent.service";
 
 const FALLBACK_REPLY = "Sorry, I'm having trouble right now. A team member will get back to you shortly."
 
-const BUSINESS_ID = 1;
+const BUSINESS_ID = 2;
 const CONVERSATION_ID = 7;
 
 async function main(){
