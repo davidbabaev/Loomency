@@ -3,11 +3,11 @@ import { buildSystemPrompt } from "../agent/system-prompt";
 import { getCustomerProfileCard } from "../agent/tools/get-customer-profile";
 import { runTool } from "../agent/tools/run-tool";
 import { ToolContext } from "../agent/tools/tool-context";
-import { AppError, NotFoundError } from "../errors";
+import { AppError, ConflictError, NotFoundError } from "../errors";
 import { callClaude, ChatMessage, ContentBlock } from "../llm/claude.client";
 import { getBusinessById } from "../repositories/businesses.repository";
 import { getConversationByIdRepo } from "../repositories/conversations.repository";
-import { getMessagesByConversationIdRepo } from "../repositories/messages.repository";
+import { createMessageRepo, getMessagesByConversationIdRepo } from "../repositories/messages.repository";
 
 const MAX_ROUNDS = 5;
 const FALLBACK_REPLY = "Sorry, I'm having trouble right now. A team member will get back to you shortly.";
@@ -66,8 +66,21 @@ export async function runAgent(conversationId: number, businessId: number): Prom
         throw new AppError("Conversation has no messages", 400);
     }
 
+    const lastRow = rows[rows.length - 1];
+    if(lastRow.sender_type !== "customer") {
+        throw new ConflictError("Nothing to reply to: the last message is not from the customer");
+    }
+
     const systemPrompt = buildSystemPrompt(business);
     const context = {businessId, customerId: conversation.customer_id};
 
-    return await runAgentLoop(systemPrompt, messages, context);
+
+    const reply = await runAgentLoop(systemPrompt, messages, context);
+    await createMessageRepo({
+        conversation_id: conversationId,
+        business_id: businessId,
+        message_text: reply,
+        sender_type: "agent",
+    });
+    return reply;
 }
