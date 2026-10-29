@@ -77,3 +77,26 @@ export const invitations = pgTable("invitations", {
     created_at: timestamp().defaultNow(),
     accepted_at: timestamp(),
 });
+
+export const agentRuns = pgTable ("agent_runs", {
+    run_id: integer().primaryKey().generatedAlwaysAsIdentity(),
+    business_id: integer().references(() => businesses.business_id).notNull(),
+    conversation_id: integer().references(() => conversations.conversation_id).notNull(),
+    rounds: integer().notNull().default(0),
+    input_tokens: integer().notNull().default(0),
+    output_tokens: integer().notNull().default(0),
+    stop_reason: text(),
+    used_fallback: boolean().notNull().default(false),
+    error_message: text(),
+    started_at: timestamp().defaultNow(),
+    finished_at: timestamp(),
+});
+
+export const toolCalls = pgTable("tool_calls", {
+    tool_call_id: integer().primaryKey().generatedAlwaysAsIdentity(),
+    run_id: integer().references(() => agentRuns.run_id).notNull(),
+    business_id: integer().references(() => businesses.business_id).notNull(),
+    tool_name: text(),
+    is_error: boolean().notNull().default(false),
+    created_at: timestamp().defaultNow(),
+});
