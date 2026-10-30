@@ -3,11 +3,12 @@ import { buildSystemPrompt } from "../agent/system-prompt";
 import { getCustomerProfileCard } from "../agent/tools/get-customer-profile";
 import { runTool } from "../agent/tools/run-tool";
 import { ToolContext } from "../agent/tools/tool-context";
-import { AppError, ConflictError, NotFoundError } from "../errors";
+import { AppError, ConflictError, ForbiddenError, NotFoundError } from "../errors";
 import { callClaude, ChatMessage, ContentBlock } from "../llm/claude.client";
 import { createAgentRunRepo, createToolCallRepo, updateAgentRunRepo } from "../repositories/agent-runs.repository";
 import { getBusinessById } from "../repositories/businesses.repository";
 import { getConversationByIdRepo } from "../repositories/conversations.repository";
+import { getEmployeeByUserId } from "../repositories/employees.repository";
 import { createMessageRepo, getMessagesByConversationIdRepo } from "../repositories/messages.repository";
 
 const MAX_ROUNDS = 5;
@@ -168,4 +169,14 @@ export async function runAgent(conversationId: number, businessId: number): Prom
     });
 
     return result.reply;
+}
+
+export async function runAgentForUser(userId: string, conversationId: number) : Promise<string> {
+    const employee = await getEmployeeByUserId(userId);
+    if(!employee){
+        throw new ForbiddenError("Access denied");
+    }  
+
+    return await runAgent(conversationId, employee.business_id);
+    // It finds the logged-in user’s employee row, takes their business_id from it, and runs the agent for that business. If the user isn’t an employee, it returns 403.
 }
