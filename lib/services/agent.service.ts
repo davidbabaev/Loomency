@@ -5,7 +5,7 @@ import { runTool } from "../agent/tools/run-tool";
 import { ToolContext } from "../agent/tools/tool-context";
 import { AppError, ConflictError, NotFoundError } from "../errors";
 import { callClaude, ChatMessage, ContentBlock } from "../llm/claude.client";
-import { createAgentRunRepo, updateAgentRunRepo } from "../repositories/agent-runs.repository";
+import { createAgentRunRepo, createToolCallRepo, updateAgentRunRepo } from "../repositories/agent-runs.repository";
 import { getBusinessById } from "../repositories/businesses.repository";
 import { getConversationByIdRepo } from "../repositories/conversations.repository";
 import { createMessageRepo, getMessagesByConversationIdRepo } from "../repositories/messages.repository";
@@ -26,6 +26,7 @@ export async function runAgentLoop(
     systemPrompt: string,
     messages: ChatMessage[],
     context: ToolContext,
+    runId: number,
 ) : Promise<AgentResult> {
 
     let inputTokens = 0;
@@ -72,7 +73,23 @@ export async function runAgentLoop(
 
         for(const block of result.content){
             if(block.type === "tool_use"){
-                toolResults.push(await runTool(block.name, block.id, context));
+                const toolResult = await runTool(
+                    block.name,
+                    block.id,
+                    context
+                );
+                toolResults.push(toolResult);
+
+                if(toolResult.type === "tool_result"){
+                    await createToolCallRepo({
+                        run_id: runId,
+                        business_id: context.businessId,
+                        tool_name: block.name,
+                        tool_use_id: block.id,
+                        result: toolResult.content,
+                        is_error: toolResult.is_error ?? false,
+                    });
+                }
             }
         }
         messages.push({role: "user", content: toolResults});
@@ -124,7 +141,7 @@ export async function runAgent(conversationId: number, businessId: number): Prom
 
     let result;
     try{
-        result = await runAgentLoop(systemPrompt, messages, context);
+        result = await runAgentLoop(systemPrompt, messages, context, run.run_id);
     }
     catch(error){
         await updateAgentRunRepo(run.run_id, businessId, {
@@ -142,11 +159,6 @@ export async function runAgent(conversationId: number, businessId: number): Prom
         used_fallback: result.usedFallback,
         finished_at: new Date(),
     });
-
-
-
-    // const result  = await runAgentLoop(systemPrompt, messages, context);
-    console.log("Run stats:", result);
     
     await createMessageRepo({
         conversation_id: conversationId,

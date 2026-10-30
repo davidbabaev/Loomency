@@ -95,6 +95,8 @@ export const agentRuns = pgTable ("agent_runs", {
 export const toolCalls = pgTable("tool_calls", {
     tool_call_id: integer().primaryKey().generatedAlwaysAsIdentity(),
     run_id: integer().references(() => agentRuns.run_id).notNull(),
+    tool_use_id: text().notNull(),
+    result: text(),
     business_id: integer().references(() => businesses.business_id).notNull(),
     tool_name: text(),
     is_error: boolean().notNull().default(false),

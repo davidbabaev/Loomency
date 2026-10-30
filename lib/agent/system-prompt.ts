@@ -3,7 +3,7 @@ import { businesses } from "../db/schema";
 type Business = typeof businesses.$inferSelect;
 
 export function buildSystemPrompt(business: Business){
-    const name = business.business_name ?? "this busines";
+    const name = business.business_name ?? "this business";
 
     return [
         `You are the WhatsApp assistant for ${name}.`,
@@ -18,7 +18,7 @@ export function buildSystemPrompt(business: Business){
         "Rules:",
         "- Be warm and brief.",
         "- Format for WhatsApp: plain text. For bold use *single asterisks*. Never use **double asterisks** or Markdown headings.",
-        "- Use only the business information above. If something is not there, say you don't have it, and offer the phone number if one is listed.",
+        "- Use the business information above and your tools to find facts. If neither has the answer, say you don't have it, and offer the phone number if one is listed.",
         "- Never invent information.",
     ].join("\n");
 }

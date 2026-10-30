@@ -6,9 +6,9 @@ import { NotFoundError } from "@/lib/errors";
 export const getCustomerProfileCard: ToolCard = {
     name: "get_customer_profile",
     description:
-        "Returns the name and phone number of the customer you are currently talking to. " +
-        "Use it to greet the customer by name, or to confirm the phone number on file when they ask for a callback. " +
-        "It takes no input. It always returns the current customer, never anyone else.",
+    "Returns the first name, last name and phone number of the customer you are currently talking to. " +
+    "Use it to greet the customer by name, or whenever they ask what details you have on file for them. " +
+    "It takes no input. It always returns the current customer, never anyone else.",
     input_schema: {
         type: "object",
         properties: {},
