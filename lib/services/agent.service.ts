@@ -9,9 +9,10 @@ import { createAgentRunRepo, createToolCallRepo, updateAgentRunRepo } from "../r
 import { getBusinessById } from "../repositories/businesses.repository";
 import { getConversationByIdRepo } from "../repositories/conversations.repository";
 import { getEmployeeByUserId } from "../repositories/employees.repository";
-import { createMessageRepo, getMessagesByConversationIdRepo } from "../repositories/messages.repository";
+import { createMessageRepo, getRecentMessagesRepo } from "../repositories/messages.repository";
 
 const MAX_ROUNDS = 5;
+const HISTORY_LIMIT = 20;
 const FALLBACK_REPLY = "Sorry, I'm having trouble right now. A team member will get back to you shortly.";
 
 type AgentResult = {
@@ -120,7 +121,17 @@ export async function runAgent(conversationId: number, businessId: number): Prom
         throw new NotFoundError("Business not found");
     }
 
-    const rows = await getMessagesByConversationIdRepo(conversationId, businessId);
+    // const rows = await getMessagesByConversationIdRepo(conversationId, businessId);
+    const recentRows = await getRecentMessagesRepo(
+        conversationId,
+        businessId,
+        HISTORY_LIMIT
+    );
+    const firstCustomerIndex = recentRows.findIndex((row) => row.sender_type === "customer");
+    //  instead of returning the item, it returns its position (0, 1, 2…)
+    
+    const rows = firstCustomerIndex === -1 ? [] : recentRows.slice(firstCustomerIndex);
+
     const messages = toChatMessages(rows);
     if(messages.length === 0) {
         throw new AppError("Conversation has no messages", 400);
@@ -137,7 +148,8 @@ export async function runAgent(conversationId: number, businessId: number): Prom
 
     const run = await createAgentRunRepo({
         business_id: businessId,
-        conversation_id: conversationId
+        conversation_id: conversationId,
+        started_at: new Date(),
     });
 
     let result;
