@@ -1,10 +1,20 @@
 import { sql } from "drizzle-orm";
-import { integer, text, pgTable, timestamp, unique, pgEnum, check, boolean } from "drizzle-orm/pg-core";
+import { integer, text, pgTable, timestamp, unique, pgEnum, check, boolean, time } from "drizzle-orm/pg-core";
 
 export const senderTypeEnum = pgEnum('sender_type', ['customer', 'employee', 'agent']);
 export const roleTypeEnum = pgEnum('role', ['admin', 'member']);
 export const invitationStatusEnum = pgEnum('invitation_status', ['pending', 'accepted', 'revoked']);
-export const dayOfWeekEnum = pgEnum('day_of_week', ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday']);
+export const dayOfWeekEnum = pgEnum('day_of_week', [
+    'sunday',
+    'monday',
+    'tuesday',
+    'wednesday',
+    'thursday',
+    'friday',
+    'saturday',
+]);
+
+export type DayOfWeek = (typeof dayOfWeekEnum.enumValues)[number];
 
 export const businesses = pgTable("businesses", {
     business_id: integer().primaryKey().generatedAlwaysAsIdentity(),
@@ -104,20 +114,21 @@ export const toolCalls = pgTable("tool_calls", {
     created_at: timestamp().defaultNow(),
 });
 
-export const businessHours = pgTable("business_hours", {
+export const businessHours = pgTable("business_hours",{
     business_hours_id: integer().primaryKey().generatedAlwaysAsIdentity(),
     business_id: integer().references(() => businesses.business_id).notNull(),
     day: dayOfWeekEnum().notNull(),
-    is_closed: boolean().notNull().default(false),
+    closed_all_day: boolean().notNull().default(false),
     open_time: time(),
     close_time: time(),
-}, (table) => [
-    unique().on(table.business_id, table.day),
-    check(
-        "hours_match_closed",
-        sql`
-            (${table.is_closed} = true AND ${table.open_time} IS NULL AND ${table.close_time} IS NULL)
-            OR (${table.is_closed} = false AND ${table.open_time} IS NOT NULL AND ${table.close_time} IS NOT NULL)
-        `
-    ),
-]);
+},
+    (table) => [
+        unique().on(table.business_id, table.day),
+        check(
+            "hours_match_closed",
+            sql`
+                (${table.closed_all_day} = true AND ${table.open_time} IS NULL AND ${table.close_time} IS NULL) OR (${table.closed_all_day} = false AND ${table.open_time} IS NOT NULL AND ${table.close_time} IS NOT NULL)
+            `
+        )
+    ]
+)
