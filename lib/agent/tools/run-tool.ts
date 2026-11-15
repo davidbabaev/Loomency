@@ -16,11 +16,13 @@ export async function runTool(name: string, id: string, input: unknown ,context:
         let result: string;
 
         if(name === "get_customer_profile"){
-            result = await getCustomerProfile(context)
-        } else if(name === "get_opening_hours"){
-            result = await getOpeningHours(input, context)
-        } else{
-            throw new AppError(`Unknown tool: ${name}`, 400)
+            result = await getCustomerProfile(context); 
+        }
+        else if(name === "get_opening_hours"){
+            result = await getOpeningHours(input, context);
+        }
+        else{
+            throw new AppError(`Unkown tool: ${name}`, 400);
         }
 
         return {type: "tool_result", tool_use_id: id, content: result};

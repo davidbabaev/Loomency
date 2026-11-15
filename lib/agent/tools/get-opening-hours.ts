@@ -43,7 +43,7 @@ export async function getOpeningHours(input: unknown, context: ToolContext): Pro
     }
 
     if(hours.closed_all_day){
-        return `The business is closed all day on ${day}`
+        return `The business is closed all day on ${day}.`
     }
 
     return `On ${day} the business is open from ${hours.open_time} to ${hours.close_time}.`
