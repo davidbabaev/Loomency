@@ -5,6 +5,7 @@ import { ToolCard } from "@/lib/llm/claude.client";
 import z from "zod";
 import { ToolContext } from "./tool-context";
 import { AppError } from "@/lib/errors";
+import { getBusinessHoursForDayRepo } from "@/lib/repositories/business-hours.repository";
 
 export const GetOpeningHoursSchema = z.object({
     day: z
@@ -37,13 +38,13 @@ export async function getOpeningHours(input: unknown, context: ToolContext): Pro
 
     const hours = await getBusinessHoursForDayRepo(context.businessId, day);
 
-    if (!hours) {
-        return `No opening hours are saved for ${day}. Do not guess, and do not assume the business is closed.`;
+    if(!hours){
+        return `No opening hours are saved for ${day}. Do not guess, and do not assume the business is closed.`
     }
 
-    if (hours.closed_all_day) {
-        return `The business is closed all day on ${day}.`;
+    if(hours.closed_all_day){
+        return `The business is closed all day on ${day}`
     }
 
-    return `On ${day} the business is open from ${hours.open_time} to ${hours.close_time}.`;
+    return `On ${day} the business is open from ${hours.open_time} to ${hours.close_time}.`
 }
