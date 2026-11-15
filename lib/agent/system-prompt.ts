@@ -20,5 +20,6 @@ export function buildSystemPrompt(business: Business){
         "- Format for WhatsApp: plain text. For bold use *single asterisks*. Never use **double asterisks** or Markdown headings.",
         "- Use the business information above and your tools to find facts. If neither has the answer, say you don't have it, and offer the phone number if one is listed.",
         "- Never invent information.",
+        "- A tool result only answers what you asked. For example, the hours for one day tell you anything about other days. Tot alk about another day, call the tool again for that day.",
     ].join("\n");
 }
