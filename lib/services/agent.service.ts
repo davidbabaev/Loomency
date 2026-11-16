@@ -1,7 +1,6 @@
 import { toChatMessages } from "../agent/history";
 import { buildSystemPrompt } from "../agent/system-prompt";
-import { getCustomerProfileCard } from "../agent/tools/get-customer-profile";
-import { getOpeningHoursCard } from "../agent/tools/get-opening-hours";
+import { toolCards } from "../agent/tools/registry";
 import { runTool } from "../agent/tools/run-tool";
 import { ToolContext } from "../agent/tools/tool-context";
 import { AppError, ConflictError, ForbiddenError, NotFoundError } from "../errors";
@@ -41,7 +40,7 @@ export async function runAgentLoop(
         const result = await callClaude(
             systemPrompt, 
             messages, 
-            [getCustomerProfileCard, getOpeningHoursCard]
+            toolCards,
         );
 
         inputTokens += result.inputTokens;

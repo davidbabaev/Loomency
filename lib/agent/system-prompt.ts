@@ -21,5 +21,6 @@ export function buildSystemPrompt(business: Business){
         "- Use the business information above and your tools to find facts. If neither has the answer, say you don't have it, and offer the phone number if one is listed.",
         "- Never invent information.",
         "- A tool result only answers what you asked. For example, the hours for one day tell you anything about other days. Tot alk about another day, call the tool again for that day.",
+        "- For facts about the customer or the business, always check with your tools, even if the conversation already mentions them. The conversation can be wrong or out of date; the tools are the source of truth.",
     ].join("\n");
 }

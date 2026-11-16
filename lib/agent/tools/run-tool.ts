@@ -6,24 +6,19 @@
 
 import { ContentBlock } from "@/lib/llm/claude.client";
 import { ToolContext } from "./tool-context";
-import { getCustomerProfile } from "./get-customer-profile";
 import { AppError } from "@/lib/errors";
-import { getOpeningHours } from "./get-opening-hours";
+import { tools } from "./registry";
 
 export async function runTool(name: string, id: string, input: unknown ,context: ToolContext ) :Promise<ContentBlock>{
 
     try{
-        let result: string;
+        const tool = tools.find((tool) => tool.card.name === name);
+        
+        if(!tool){
+            throw new AppError(`Unknown tool: ${name}`, 400)
+        }
 
-        if(name === "get_customer_profile"){
-            result = await getCustomerProfile(context); 
-        }
-        else if(name === "get_opening_hours"){
-            result = await getOpeningHours(input, context);
-        }
-        else{
-            throw new AppError(`Unkown tool: ${name}`, 400);
-        }
+        const result = await tool.run(input, context);
 
         return {type: "tool_result", tool_use_id: id, content: result};
     } 
