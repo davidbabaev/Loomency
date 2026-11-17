@@ -196,12 +196,16 @@ export async function runAgent(
     return result.reply;
 }
 
-export async function runAgentForUser(userId: string, conversationId: number) : Promise<string> {
+export async function runAgentForUser(
+    userId: string, 
+    conversationId: number,
+    onText?: (text: string) => void
+) : Promise<string> {
     const employee = await getEmployeeByUserId(userId);
     if(!employee){
         throw new ForbiddenError("Access denied");
     }  
 
-    return await runAgent(conversationId, employee.business_id);
+    return await runAgent(conversationId, employee.business_id, onText);
     // It finds the logged-in user’s employee row, takes their business_id from it, and runs the agent for that business. If the user isn’t an employee, it returns 403.
 }
