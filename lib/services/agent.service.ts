@@ -29,6 +29,7 @@ export async function runAgentLoop(
     messages: ChatMessage[],
     context: ToolContext,
     runId: number,
+    onText?: (text: string) => void,
 ) : Promise<AgentResult> {
 
     let inputTokens = 0;
@@ -41,6 +42,7 @@ export async function runAgentLoop(
             systemPrompt, 
             messages, 
             toolCards,
+            onText,
         );
 
         inputTokens += result.inputTokens;
@@ -108,7 +110,11 @@ export async function runAgentLoop(
     };
 }
 
-export async function runAgent(conversationId: number, businessId: number): Promise<string> {
+export async function runAgent(
+    conversationId: number, 
+    businessId: number,
+    onText?: (text: string) => void,
+): Promise<string> {
     const conversation = await getConversationByIdRepo(conversationId, businessId);
     if(!conversation) {
         throw new NotFoundError("Conversation not found");
@@ -155,7 +161,13 @@ export async function runAgent(conversationId: number, businessId: number): Prom
 
     let result;
     try{
-        result = await runAgentLoop(systemPrompt, messages, context, run.run_id);
+        result = await runAgentLoop(
+            systemPrompt, 
+            messages, 
+            context, 
+            run.run_id,
+            onText,
+        );
     }
     catch(error){
         await updateAgentRunRepo(run.run_id, businessId, {

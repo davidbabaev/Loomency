@@ -39,18 +39,25 @@ export type ToolCard = {
 export async function callClaude(
     systemPrompt: string, 
     messages: ChatMessage[],
-    tools: ToolCard[]
+    tools: ToolCard[],
+    onText?: (text: string) => void
 ){
 
     let response;
     try{
-        response = await client.messages.create({
+        const stream = client.messages.stream({
             model: MODEL,
             max_tokens: 300,
             system: systemPrompt,
             messages,
             tools,
         });
+
+        if(onText) {
+            stream.on("text", onText);
+        }
+
+        response = await stream.finalMessage();
     }
     catch(err){
         console.error("Claude API call failed:", err);

@@ -9,7 +9,12 @@ const CONVERSATION_ID = 7;
 
 async function main(){
     try{
-        const reply = await runAgent(CONVERSATION_ID, BUSINESS_ID);
+        const reply = await runAgent(
+            CONVERSATION_ID, 
+            BUSINESS_ID, 
+            (text) => process.stdout.write(text)
+        );
+        console.log();
         console.log("Reply to Dana:", reply);
     }
     catch(err){

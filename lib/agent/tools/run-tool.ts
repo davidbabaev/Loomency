@@ -23,7 +23,7 @@ export async function runTool(name: string, id: string, input: unknown ,context:
         return {type: "tool_result", tool_use_id: id, content: result};
     } 
     catch(err){
-        console.log("Tool failed:", name, err);
+        console.error("Tool failed:", name, err);
         
         const message = err instanceof AppError ? err.message : "The tool failed unexpectedly"
 
