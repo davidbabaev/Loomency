@@ -50,7 +50,7 @@ export default async function ConversationPage(
                                 {message.sender_type}
                             </p>
                             <p>
-                                {message.message_text ?? '[An iage or file was sent]'}
+                                {message.message_text ?? '[An image or file was sent]'}
                             </p>
                         </li>
                     ))}

@@ -40,22 +40,30 @@ export async function POST(
     const stream = new ReadableStream({
         async start(controller){
 
+            function send(event: string, data:unknown){
+                controller.enqueue(encoder.encode(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`))
+            }
+
             try{
                 await runAgentForUser(userId, conversationId, (text) => {
-                    controller.enqueue(encoder.encode(text))
+                    send("text", {text});
                 });
             }
             catch(err){
                 console.error("Agent stream failed:", err);
                 const message = err instanceof AppError ? err.message : "Something went wrong";
-                controller.enqueue(encoder.encode(`\n[Error: ${message}]`));
+                send("error", {message})
             }
 
+            send("done", {});
             controller.close();
         },
     });
 
     return new Response(stream, {
-        headers: {"Content-Type": "text/plain; charser=utf-8"},
+        headers: {
+            "Content-Type": "text/event-stream; charset=utf-8",
+            "Cache-Control": "no-cache"
+        },
     });
 }
