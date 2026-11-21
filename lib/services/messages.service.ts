@@ -3,7 +3,7 @@ import { createMessageRepo, getMessagesByConversationIdRepo } from "../repositor
 import { getConversationById } from "./conversations.service";
 import { CreateMessageSchema } from "../validations/messages.schema";
 import { getEmployeeByUserId } from "../repositories/employees.repository";
-import { ForbiddenError } from "../errors";
+import { AppError, ForbiddenError } from "../errors";
 
 
 export async function getMessagesByConversationId(
@@ -45,5 +45,26 @@ export async function createMessage(
     };
 
     const created = await createMessageRepo(newMessage);
+    return created;
+}
+
+export async function createTestCustomerMessage(
+    userId: string,
+    conversationId: number,
+    text: string
+){
+    const conversation = await getConversationById(userId, conversationId);
+
+    if(!conversation.customer_id){
+        throw new AppError("This conversation has no customer", 400);
+    }
+
+    const created = await createMessageRepo({
+        conversation_id: conversationId,
+        business_id: conversation.business_id,
+        sender_type: "customer",
+        sender_customer_id: conversation.customer_id,
+        message_text: text,
+    });
     return created;
 }
