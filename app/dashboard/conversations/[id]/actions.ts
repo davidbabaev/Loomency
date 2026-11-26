@@ -18,6 +18,7 @@ type ActionResult = {ok: true} | {ok: false; error: string};
 export async function sendTestMessage(conversationId: number, text: string) : Promise<ActionResult>{
     const parsed = TestMessageSchama.safeParse({conversationId, text});
     if(!parsed.success){
+        console.error("Invalid test message:", parsed.error.issues)
         return {ok: false, error: "The message must be between 1 and 4096 characters"};
     }
 

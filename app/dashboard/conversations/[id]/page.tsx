@@ -3,6 +3,7 @@ import { AppError } from "@/lib/errors";
 import { getMessagesByConversationId } from "@/lib/services/messages.service";
 import { headers } from "next/headers";
 import { notFound, redirect } from "next/navigation";
+import ChatBox from "./chat-box";
 
 export default async function ConversationPage(
     {params} : {params: Promise<{id:string}>}
@@ -55,6 +56,8 @@ export default async function ConversationPage(
                         </li>
                     ))}
                 </ul>
+
+                <ChatBox conversationId={conversationId}/>
             </div>
         </main>
     )
