@@ -24,7 +24,44 @@ export default function ChatBox({conversationId} : {conversationId: number}){
         }
 
         setInput("");
-        setIsRunning(true);
+        await streamAgentReply();
+        setIsRunning(false);
+    }
+
+
+    // fetch:
+    // url - where to send the request (a strign)
+    // options - an optional object, which method, headers, body
+    // it return a Promise, so we await it, and we get back a Response object.
+
+    // fetch - POST with a JSON body:
+    // const response = await fetch("/api/conversations/7/messages", {
+    //     method: "POST",
+    //     headers: { "Content-Type": "application/json" },
+    //     body: JSON.stringify({ message_text: "Hi" }),
+    // });
+
+    async function streamAgentReply(){
+        const response = await fetch(
+            `/api/conversations/${conversationId}/agent/stream`, 
+            {method: "POST"},
+        );
+
+        if(!response.ok || !response.body){
+            setError("Could not start the agent");
+            return;
+        }
+
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+
+        while(true){
+            const {done, value} = await reader.read();
+            if(done) break;
+
+            const chunk = decoder.decode(value, {stream: true});
+            console.log("chunk:", chunk);
+        }
     }
 
     return (
